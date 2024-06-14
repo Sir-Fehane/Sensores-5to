@@ -14,6 +14,7 @@ void setup(){
 void loop(){
   valor = analogRead(MIC);		// lee valor de entrada analogica
   Serial.println(valor); // escribe valor en monitor serial
-  delay(500);
+  Serial.println("//////////////////////////"); // escribe valor en monitor serial
+  delay(250);
 
 }
