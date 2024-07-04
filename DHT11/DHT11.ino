@@ -16,6 +16,6 @@ void loop() {
   float h = dht.readHumidity();
   float t = dht.readTemperature();
   // Mostramos los valores leídos
-  Serial.print("HM : "); Serial.print(h); Serial.print("% "); Serial.println(": Humedad");
-  Serial.print("TP : "); Serial.print(t); Serial.print("*C "); Serial.println(": Temperatura");
+  Serial.print("HM : "); Serial.print(h); Serial.print(" : % "); Serial.println(": Humedad");
+  Serial.print("TP : "); Serial.print(t); Serial.print(" : *C "); Serial.println(": Temperatura");
 }

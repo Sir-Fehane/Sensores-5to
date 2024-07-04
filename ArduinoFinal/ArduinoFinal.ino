@@ -3,6 +3,9 @@
 #define DHTTYPE DHT11 
 DHT dht(DHTPIN, DHTTYPE);
 
+#include "HX711.h"
+HX711 celda;
+
 //Comprar resistencia de 1k ohmio a tierra
 const int ldrPin = A0; // Pin donde está conectado el LDR
 
@@ -49,7 +52,7 @@ void getData(int sensor) {
       sensorMQ2();
       break;
     case 6:
-    //Peso
+    sensorPeso();
       break;
     case 7:
     //frecuencia
@@ -60,10 +63,20 @@ void getData(int sensor) {
       sensorPIR();
       sensorSonido();
       sensorMQ2();
+      sensorPeso();
       break; 
     default:
       break;
   }
+}
+
+void sensorPeso() {
+  float peso = 0.0;
+  peso = celda.get_units(10);
+  celda.power_down();
+  celda.power_up();	
+  celda.tare();
+  Serial.print("PE : "); Serial.print(peso); Serial.print(" : gr"); Serial.println(": Bascula");
 }
 
 void sensorLDR() {
