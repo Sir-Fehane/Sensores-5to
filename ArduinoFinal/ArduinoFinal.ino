@@ -21,9 +21,16 @@ const int mic = A1;
 
 const int gas = A2;
 
+//motor
+const int pinIN1 = 8;
+bool estado = false;
+
 void setup() {
   dht.begin();
   pinMode(dPIR, INPUT);
+    // Configurar Motor
+  pinMode(pinIN1, OUTPUT);
+  digitalWrite(pinIN1, LOW);
   Serial.begin(9600);
 }
 
@@ -65,6 +72,9 @@ void getData(int sensor) {
       sensorMQ2();
       sensorPeso();
       break; 
+    case 9:
+      cambiarMotor();
+      break;
     default:
       break;
   }
@@ -132,4 +142,16 @@ void sensorSonido() {
 
 void sensorMQ2() {
   leerSensor(gas, 210, "MQ", "ppm : Gas");
+}
+
+void cambiarMotor() {
+  estado = !estado;
+
+  if (estado) {
+    // Encender el motor en una dirección
+    digitalWrite(pinIN1, HIGH);
+  } else {
+    // Apagar el motor
+    digitalWrite(pinIN1, LOW);
+  }
 }
