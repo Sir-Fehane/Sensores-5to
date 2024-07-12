@@ -23,7 +23,16 @@ const int gas = A2;
 
 //motor
 const int pinIN1 = 8;
-bool estado = false;
+bool estadoMotor = false;
+
+//leds
+const int pinLeds = 11;
+bool estadoLeds = false;
+
+//bpm
+const int LOPlus = 4;
+const int LOMinus = 3;
+const int BPM = A4;
 
 void setup() {
   dht.begin();
@@ -31,52 +40,49 @@ void setup() {
     // Configurar Motor
   pinMode(pinIN1, OUTPUT);
   digitalWrite(pinIN1, LOW);
+  //configurar leds
+  pinMode(pinLeds, OUTPUT);
+  digitalWrite(pinLeds, LOW);
+  // BPM
+  pinMode(LOPlus, INPUT);
+  pinMode(LOMinus, INPUT);
+
   Serial.begin(9600);
 }
 
 void loop() {
-
-  int lectura = Serial.read();
+  String lectura = Serial.readStringUntil('\n'); // Leer hasta un salto de línea
   getData(lectura);
   delay(2000);
 }
 
-void getData(int sensor) {
-  switch(sensor){
-    case 1:
-      sensorDHT11();
-      break;
-    case 2:
-      sensorLDR();
-      break;
-    case 3:
-      sensorPIR();
-      break;
-    case 4:
-      sensorSonido();
-      break;
-    case 5:
-      sensorMQ2();
-      break;
-    case 6:
-    sensorPeso();
-      break;
-    case 7:
-    //frecuencia
-      break; 
-    case 8:
-      sensorDHT11();
-      sensorLDR();
-      sensorPIR();
-      sensorSonido();
-      sensorMQ2();
-      sensorPeso();
-      break; 
-    case 9:
-      cambiarMotor();
-      break;
-    default:
-      break;
+void getData(String sensor) {
+  if (sensor == "1") {
+    sensorDHT11();
+  } else if (sensor == "2") {
+    sensorLDR();
+  } else if (sensor == "3") {
+    sensorPIR();
+  } else if (sensor == "4") {
+    sensorSonido();
+  } else if (sensor == "5") {
+    sensorMQ2();
+  } else if (sensor == "6") {
+    //sensorPeso();
+  } else if (sensor == "7") {
+    sensorFrecuencia();
+  } else if (sensor == "8") {
+    sensorDHT11();
+    sensorLDR();
+    sensorPIR();
+    sensorSonido();
+    sensorMQ2();
+    //sensorPeso();
+  } else if (sensor == "9") {
+    cambiarMotor();
+  } else if (sensor == "10") {
+    cambiarLeds();
+  } else {
   }
 }
 
@@ -144,14 +150,40 @@ void sensorMQ2() {
   leerSensor(gas, 210, "MQ", "ppm : Gas");
 }
 
-void cambiarMotor() {
+void cambiarEstado(int pin, bool &estado) {
   estado = !estado;
+  digitalWrite(pin, estado ? HIGH : LOW);
+}
 
-  if (estado) {
-    // Encender el motor en una dirección
-    digitalWrite(pinIN1, HIGH);
-  } else {
-    // Apagar el motor
-    digitalWrite(pinIN1, LOW);
+void cambiarMotor() {
+  cambiarEstado(pinIN1, estadoMotor);
+}
+
+void cambiarLeds() {
+  cambiarEstado(pinLeds, estadoLeds);
+}
+void sensorFrecuencia() {
+  int frecValue = analogRead(BPM);
+  String nivel = "";
+  if(frecValue >= 0 && frecValue < 50)
+  {
+    nivel ="Muy bajo";
   }
+  else if(frecValue >= 50 && frecValue < 100)
+  {
+    nivel ="Normal";
+  }
+  else if(frecValue >= 100 && frecValue < 150)
+  {
+    nivel = "Poco alto";
+  }
+  else if(frecValue >= 150 && frecValue < 200)
+  {
+    nivel ="Alto";
+  }
+  else
+  {
+    nivel = "Muy alto";
+  }
+  Serial.print("SRC : "); Serial.print(nivel); Serial.print(" : bpm "); Serial.println(": Ritmo Card");
 }
