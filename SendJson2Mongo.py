@@ -8,7 +8,7 @@ class arduinoToServerClass:
     def __init__(self):
         self.ser = serial.Serial('COM9', 9600)
         self.data_sent = False
-        self.backend_url = "http://127.0.0.1:3333/test"  # Reemplaza con la URL de tu backend
+        self.backend_url = "http://127.0.0.1:3333/test"  # Reemplazar URL
 
     def save_to_json(self, obj):
         try:
@@ -57,7 +57,7 @@ class arduinoToServerClass:
                 'valor': sensor_value,
                 'unidad': sensor_unit,
                 'descripcion': sensor_description,
-                'cunaID': 1
+                'cunaID': "Cuna1" #id de la rasp
             }
             
             # Verificar conexión a internet
