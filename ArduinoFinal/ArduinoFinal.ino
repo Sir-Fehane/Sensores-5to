@@ -9,25 +9,24 @@ HX711 celda;
 //Comprar resistencia de 1k ohmio a tierra
 const int ldrPin = A0; // Pin donde está conectado el LDR
 
-/*Este sensor se utilizara como actuador para prender las luces led, por lo que el codigo
-inconcluso hasta que se haga la tira led
-Se podría hacer con el servidor http en la rasp, que detecte el cambio y mande la peticion para prenderlo
-*/
-const int dPIR=2;
-int estadoPIR = 0;
-
+//Ultrasonico
+const int trigPin = 9;
+const int echoPin = 8;
+long duration;
+int distance;
 
 const int mic = A1;
 
 const int gas = A2;
 
 //motor
-const int pinIN1 = 8;
+const int pinIN1 = 7;
 bool estadoMotor = false;
 
 //leds
 const int pinLeds = 11;
 bool estadoLeds = false;
+bool controlManual = false;
 
 //bpm
 const int LOPlus = 4;
@@ -36,7 +35,6 @@ const int BPM = A4;
 
 void setup() {
   dht.begin();
-  pinMode(dPIR, INPUT);
     // Configurar Motor
   pinMode(pinIN1, OUTPUT);
   digitalWrite(pinIN1, LOW);
@@ -46,6 +44,9 @@ void setup() {
   // BPM
   pinMode(LOPlus, INPUT);
   pinMode(LOMinus, INPUT);
+  //Ultrasonico
+  pinMode(trigPin, OUTPUT);
+  pinMode(echoPin, INPUT);
 
   Serial.begin(9600);
 }
@@ -53,6 +54,7 @@ void setup() {
 void loop() {
   String lectura = Serial.readStringUntil('\n'); // Leer hasta un salto de línea
   getData(lectura);
+  ultrasonico();
   delay(2000);
 }
 
@@ -62,7 +64,8 @@ void getData(String sensor) {
   } else if (sensor == "2") {
     sensorLDR();
   } else if (sensor == "3") {
-    sensorPIR();
+    controlManual = !controlManual;
+    cambiarLeds();
   } else if (sensor == "4") {
     sensorSonido();
   } else if (sensor == "5") {
@@ -74,14 +77,11 @@ void getData(String sensor) {
   } else if (sensor == "8") {
     sensorDHT11();
     sensorLDR();
-    sensorPIR();
     sensorSonido();
     sensorMQ2();
     //sensorPeso();
   } else if (sensor == "9") {
     cambiarMotor();
-  } else if (sensor == "10") {
-    cambiarLeds();
   } else {
   }
 }
@@ -127,12 +127,6 @@ void sensorDHT11() {
   float t = dht.readTemperature();
   Serial.print("HM : "); Serial.print(h); Serial.print(" : % "); Serial.println(": Humedad");
   Serial.print("TP : "); Serial.print(t); Serial.print(" : *C "); Serial.println(": Temperatura");
-}
-
-void sensorPIR() {
-  int ESTADO = digitalRead(dPIR);
-  //habrá pedo en iOS por esto: ↓
-  Serial.print("PIR : "); Serial.print(ESTADO); Serial.print(" : "); Serial.println(": Movimiento");
 }
 
 void leerSensor(int pin, int umbral, const String& etiqueta, const String& unidad) {
@@ -186,4 +180,21 @@ void sensorFrecuencia() {
     nivel = "Muy alto";
   }
   Serial.print("SRC : "); Serial.print(nivel); Serial.print(" : bpm "); Serial.println(": Ritmo Card");
+}
+
+void ultrasonico() {
+  digitalWrite(trigPin, LOW);
+  delayMicroseconds(2);
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);
+  duration = pulseIn(echoPin, HIGH);
+  distance = duration * 0.034 / 2;
+  if (!controlManual) {
+    if (distance < 15) {
+      digitalWrite(pinLeds, HIGH);
+    } else {
+      digitalWrite(pinLeds, LOW);
+    }
+  }
 }
