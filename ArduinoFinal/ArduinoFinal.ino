@@ -3,11 +3,15 @@
 #define DHTTYPE DHT11 
 DHT dht(DHTPIN, DHTTYPE);
 
+//Peso
 #include "HX711.h"
 HX711 celda;
+#define DT 6		
+#define SCK 5
+float peso = 0;
 
 //Comprar resistencia de 1k ohmio a tierra
-const int ldrPin = A0; // Pin donde está conectado el LDR
+const int ldrPin = A0;
 
 //Ultrasonico
 const int trigPin = 9;
@@ -48,6 +52,10 @@ void setup() {
   pinMode(trigPin, OUTPUT);
   pinMode(echoPin, INPUT);
 
+  //Peso
+  celda.begin(DT, SCK);
+  celda.set_scale(113.f);	// establece el factor de escala obtenido del primer programa
+  celda.tare();			
   Serial.begin(9600);
 }
 
@@ -71,7 +79,7 @@ void getData(String sensor) {
   } else if (sensor == "5") {
     sensorMQ2();
   } else if (sensor == "6") {
-    //sensorPeso();
+    sensorPeso();
   } else if (sensor == "7") {
     sensorFrecuencia();
   } else if (sensor == "8") {
@@ -79,7 +87,8 @@ void getData(String sensor) {
     sensorLDR();
     sensorSonido();
     sensorMQ2();
-    //sensorPeso();
+    sensorPeso();
+    sensorFrecuencia();
   } else if (sensor == "9") {
     cambiarMotor();
   } else {
@@ -87,11 +96,9 @@ void getData(String sensor) {
 }
 
 void sensorPeso() {
-  float peso = 0.0;
   peso = celda.get_units(10);
   celda.power_down();
   celda.power_up();	
-  celda.tare();
   Serial.print("PE : "); Serial.print(peso); Serial.print(" : gr"); Serial.println(": Bascula");
 }
 
@@ -129,33 +136,6 @@ void sensorDHT11() {
   Serial.print("TP : "); Serial.print(t); Serial.print(" : *C "); Serial.println(": Temperatura");
 }
 
-void leerSensor(int pin, int umbral, const String& etiqueta, const String& unidad) {
-  int valor = analogRead(pin);
-  String res = (valor < umbral) ? "Bajo" : "Alto";
-  Serial.print(etiqueta); Serial.print(" : "); Serial.print(res); Serial.print(" : "); Serial.println(unidad);
-}
-
-void sensorSonido() {
-  leerSensor(mic, 105, "SD", ": Sonido");
-  delay(250);
-}
-
-void sensorMQ2() {
-  leerSensor(gas, 210, "MQ", "ppm : Gas");
-}
-
-void cambiarEstado(int pin, bool &estado) {
-  estado = !estado;
-  digitalWrite(pin, estado ? HIGH : LOW);
-}
-
-void cambiarMotor() {
-  cambiarEstado(pinIN1, estadoMotor);
-}
-
-void cambiarLeds() {
-  cambiarEstado(pinLeds, estadoLeds);
-}
 void sensorFrecuencia() {
   int frecValue = analogRead(BPM);
   String nivel = "";
@@ -182,6 +162,34 @@ void sensorFrecuencia() {
   Serial.print("SRC : "); Serial.print(nivel); Serial.print(" : bpm "); Serial.println(": Ritmo Card");
 }
 
+void leerSensor(int pin, int umbral, const String& etiqueta, const String& unidad) {
+  int valor = analogRead(pin);
+  String res = (valor < umbral) ? "Bajo" : "Alto";
+  Serial.print(etiqueta); Serial.print(" : "); Serial.print(res); Serial.print(" : "); Serial.println(unidad);
+}
+
+void sensorSonido() {
+  leerSensor(mic, 105, "SD", ": Sonido");
+  delay(250);
+}
+
+void sensorMQ2() {
+  leerSensor(gas, 210, "MQ", "ppm : Gas");
+}
+
+void cambiarEstado(int pin, bool &estado) {
+  estado = !estado;
+  digitalWrite(pin, estado ? HIGH : LOW);
+}
+
+void cambiarMotor() {
+  cambiarEstado(pinIN1, estadoMotor);
+}
+
+void cambiarLeds() {
+  cambiarEstado(pinLeds, estadoLeds);
+  Serial.print("Leds : "); Serial.print(controlManual); Serial.print(" : Status"); Serial.println(": Leds");
+}
 void ultrasonico() {
   digitalWrite(trigPin, LOW);
   delayMicroseconds(2);
