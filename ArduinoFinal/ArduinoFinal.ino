@@ -184,6 +184,7 @@ void cambiarEstado(int pin, bool &estado) {
 
 void cambiarMotor() {
   cambiarEstado(pinIN1, estadoMotor);
+  Serial.print("Motor : "); Serial.print(estadoMotor); Serial.print(" : Status"); Serial.println(": Motor");
 }
 
 void cambiarLeds() {
