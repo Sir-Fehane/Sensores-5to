@@ -4,6 +4,7 @@ import serial
 import json
 import time
 from .mongo import arduinoToMongoClass
+import threading
 
 
 class Number:
@@ -12,7 +13,6 @@ class Number:
         self.status = False
     def setStatus(self, status):
         self.status = status
-        ciclowhile()
     def getStatus(self):
         return self.status
     
@@ -41,7 +41,7 @@ def send_number(request):
             ser.write(str(number).encode())
             print('Si mando el numero')
             # Leer datos  Arduino
-            Mongo.runSesion()
+            Mongo.runSingle()
             return JsonResponse({'message': 'Número enviado con éxito'}, status=200)
         except Exception as e:
             return JsonResponse({'error': f'Error al enviar el número: {e}'}, status=500)
@@ -79,8 +79,11 @@ def start_cicle(request):
         status=numberToSend.getStatus()
         start = not status
         numberToSend.setStatus(start)
+        if start:
+            thread = threading.Thread(target=ciclowhile)
+            thread.start()
         return JsonResponse({
-            "message": "Ciclo iniciado"
+            "message": "Ciclo iniciado" if start else "Ciclo detenido"
         })
     else:
         return JsonResponse({
@@ -95,5 +98,5 @@ def ciclowhile():
         ser = Mongo.ser
         ser.write(sendingdata)
         Mongo.runSesion()
-        time.sleep(30)
+        time.sleep(5)
     print('Termina')

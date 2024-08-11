@@ -39,15 +39,17 @@ class arduinoToMongoClass:
             json.dump(existing_data, file, ensure_ascii=False, indent=2)
     
     def send_json_to_mongo(self):
-        if not self.data_sent:
+        data = None  # Inicializamos data como None
+        
+        if self.data_sent == True:
             try:
-                data = self.read_json()
-                self.data_sent = True
+                data = self.read_json()  # Intentamos leer el JSON
             except Exception as e:
                 print(f'Error al leer el JSON: {e}')
                 return
-        
+            
         if not data:
+            print('No hay datos para enviar a MongoDB')
             return
         
         try:
@@ -56,26 +58,24 @@ class arduinoToMongoClass:
                     # Actualizar la colección de dispositivos
                     self.devices_collection.update_one(
                         {"deviceID": device_id},
-                        {"$set": {"deviceID": device_id, "url":self.ngrokURL}},
+                        {"$set": {"deviceID": device_id, "url": self.ngrokURL}},
                         upsert=True
                     )
                     
                     for sensor_name, sensor_data in sensors.items():
-                        collection_name = sensor_name
                         collection = self.db['Data']
                         
                         # Insertar los datos de los sensores en su colección
                         if "infoSensor" in sensor_data:
                             sensor_document = {
-                                
-                                    "infoSensor": {
-                                        "IdSensor": sensor_name["infoSensor"].get("IdSensor", ""),
-                                        "unidad": sensor_data["infoSensor"].get("unidad", ""),
-                                        "descripcion": sensor_data["infoSensor"].get("descripcion", ""),
-                                        "deviceID": device_id,
-                                        "data": sensor_data["infoSensor"]["data"]
-                                    }
+                                "infoSensor": {
+                                    "IdSensor": sensor_data["infoSensor"].get("IdSensor", ""),
+                                    "unidad": sensor_data["infoSensor"].get("unidad", ""),
+                                    "descripcion": sensor_data["infoSensor"].get("descripcion", ""),
+                                    "deviceID": device_id,
+                                    "data": sensor_data["infoSensor"]["data"]
                                 }
+                            }
                             collection.insert_one(sensor_document)
             
             # Limpiar el archivo JSON después de enviar los datos
@@ -83,8 +83,55 @@ class arduinoToMongoClass:
                 pass
             
             print('Json enviado a MongoDB')
+            self.data_sent = False
         except Exception as e:
             print(f'No se pudo enviar los datos a MongoDB: {e}')
+
+            if not self.data_sent:
+                try:
+                    data = self.read_json()
+                    self.data_sent = True
+                except Exception as e:
+                    print(f'Error al leer el JSON: {e}')
+                    return
+            
+            if not data:
+                return
+            
+            try:
+                for entry in data:
+                    for device_id, sensors in entry['Dispositivos'].items():
+                        # Actualizar la colección de dispositivos
+                        self.devices_collection.update_one(
+                            {"deviceID": device_id},
+                            {"$set": {"deviceID": device_id, "url": self.ngrokURL}},
+                            upsert=True
+                        )
+                        
+                        for sensor_name, sensor_data in sensors.items():
+                            collection = self.db['Data']
+                            
+                            # Insertar los datos de los sensores en su colección
+                            if "infoSensor" in sensor_data:
+                                sensor_document = {
+                                    "infoSensor": {
+                                        "IdSensor": sensor_data["infoSensor"].get("IdSensor", ""),
+                                        "unidad": sensor_data["infoSensor"].get("unidad", ""),
+                                        "descripcion": sensor_data["infoSensor"].get("descripcion", ""),
+                                        "deviceID": device_id,
+                                        "data": sensor_data["infoSensor"].get("data", [])
+                                    }
+                                }
+                                collection.insert_one(sensor_document)
+                
+                # Limpiar el archivo JSON después de enviar los datos
+                with open('data.json', 'w') as file:
+                    pass
+                
+                print('Json enviado a MongoDB')
+            except Exception as e:
+                print(f'No se pudo enviar los datos a MongoDB: {e}')
+
         
     def runSesion(self):
         
@@ -132,6 +179,7 @@ class arduinoToMongoClass:
         try:
             host = socket.gethostbyname(remote_server)
             socket.create_connection((host, 80), 2)
+            self.send_json_to_mongo()
             
             # Insertar en la colección de dispositivos
             self.devices_collection.update_one(
@@ -150,6 +198,7 @@ class arduinoToMongoClass:
         except Exception as e:
             print(f'Error al guardar en MongoDB: {e}')
             try:
+                self.data_sent = True
                 self.save_to_json(obj)
                 print('Datos guardados en archivo JSON')
             except Exception as e:
@@ -171,6 +220,7 @@ class arduinoToMongoClass:
                     
                 obj["Dispositivos"][self.device_id][sensor_name] = {
                         "infoSensor": {
+                            "IdSensor": sensor_name,
                             "unidad": sensor_unit,
                             "descripcion": sensor_description,
                             "deviceID": self.device_id,
@@ -209,13 +259,15 @@ class arduinoToMongoClass:
                 
                 # Insertar en la colección de sensores
                 collection_name = sensor_name
-                collection = self.db[collection_name]
+                collection = self.db['Data']
                 sensor_document = obj["Dispositivos"][self.device_id][sensor_name]
                 collection.insert_one(sensor_document)
                 
                 print('Datos guardados en MongoDB')
             except Exception as e:
+                print(e)
                 try:
+                    self.data_sent = True
                     self.save_to_json(obj)
                     print('Datos guardados en archivo JSON')
                 except Exception as e:
@@ -227,3 +279,4 @@ if __name__ == '__main__':
     a = arduinoToMongoClass()
     a.runSesion()
                 
+             
