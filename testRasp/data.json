@@ -1,0 +1,40 @@
+[
+  {
+    "Dispositivos": {
+      "12345": {
+        "TP": {
+          "infoSensor": {
+            "unidad": "*C",
+            "descripcion": "Temperatura",
+            "deviceID": "12345",
+            "data": [
+              {
+                "data": "nan",
+                "datetime": "11/08/24 15:31:01"
+              }
+            ]
+          }
+        }
+      }
+    }
+  },
+  {
+    "Dispositivos": {
+      "12345": {
+        "HM": {
+          "infoSensor": {
+            "unidad": "%",
+            "descripcion": "Humedad",
+            "deviceID": "12345",
+            "data": [
+              {
+                "data": "nan",
+                "datetime": "11/08/24 15:31:16"
+              }
+            ]
+          }
+        }
+      }
+    }
+  }
+]
