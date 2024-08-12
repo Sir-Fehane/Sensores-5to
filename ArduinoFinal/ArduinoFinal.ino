@@ -63,7 +63,7 @@ void loop() {
   String lectura = Serial.readStringUntil('\n'); // Leer hasta un salto de línea
   getData(lectura);
   ultrasonico();
-  delay(2000);
+  
 }
 
 void getData(String sensor) {
