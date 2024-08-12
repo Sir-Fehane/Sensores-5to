@@ -252,12 +252,10 @@ void sensorLDR(int numSensor) {
     }
       //tengo duda si mandar el caracter string o el valor tal cual ↓
     Serial.print("FR"); Serial.print(numSensor); Serial.print(" : "); Serial.print(nivel); Serial.print(" : lux "); Serial.println(": Luz");
-    }
   }
   else {
     Serial.println("ERROR");
-  }
-  
+  } 
 }
 
 void sensorFrecuencia(int numSensor) {
