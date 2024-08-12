@@ -84,7 +84,6 @@ void setup() {
 void loop() {
   String lectura = Serial.readStringUntil('\n'); // Leer hasta un salto de línea
   getData(lectura);
-  
   ultrasonico();
 }
 
@@ -95,24 +94,33 @@ void getData(String sensor) {
   int numSensor = numSensorStr.toInt(); // Convertir la parte numérica a int
   if (identificador == "HM") {
     sensorHM(numSensor);
-  } else if (identificador == "TP") {
+  } 
+  else if (identificador == "TP") {
     sensorTP(numSensor);
-  } else if (identificador == "FR") {
+  } 
+  else if (identificador == "FR") {
     sensorLDR(numSensor);
-  } else if (identificador == "SD") {
+  } 
+  else if (identificador == "SD") {
     sensorSonido(numSensor);
-  } else if (identificador == "MQ") {
+  } 
+  else if (identificador == "MQ") {
     sensorMQ2(numSensor);
-  } else if (identificador == "PE") {
+  } 
+  else if (identificador == "PE") {
     sensorPeso(numSensor);
-  } else if (identificador == "SRC") {
+  } 
+  else if (identificador == "SRC") {
     sensorFrecuencia(numSensor);
-  } else if (identificador == "Leds") {
+  } 
+  else if (identificador == "Leds") {
     controlManual = !controlManual;
     cambiarLeds(numSensor);
-  } else if (identificador == "Motor") {
+  } 
+  else if (identificador == "Motor") {
     cambiarMotor(numSensor);
-  } else if (identificador == "All"){ //Debe llegar como un All:999
+  } 
+  else if (identificador == "All"){
     sensorHM(numSensor);
     sensorTP(numSensor);
     sensorLDR(numSensor);
@@ -177,7 +185,7 @@ void sensorPeso(int numSensor) {
     }
     return;
   }
-  if (checkIndexArray(numSensor, sizeDHT) == true) {
+  if (checkIndexArray(numSensor, sizeHX) == true) {
     float peso = arrayHX[numSensor].get_units(10);
     arrayHX[numSensor].power_down();
     arrayHX[numSensor].power_up();	
@@ -190,30 +198,66 @@ void sensorPeso(int numSensor) {
 }
 
 void sensorLDR(int numSensor) {
-  int valorLDR = analogRead(arrayLdr[numSensor]);
-  String nivel = "";
-  if(valorLDR >= 0 && valorLDR < 150)
-  {
-    nivel ="Muy alta";
+  if (numSensor == 999) {
+    for (int i=0; i < sizeLdr; i++){
+      int valorLDR = analogRead(arrayLdr[i]);
+      String nivel = "";
+      if(valorLDR >= 0 && valorLDR < 150)
+      {
+        nivel ="Muy alta";
+      }
+      else if(valorLDR >= 150 && valorLDR < 300)
+      {
+        nivel ="Alta";
+      }
+      else if(valorLDR >= 300 && valorLDR < 499)
+      {
+        nivel = "Aceptable";
+      }
+      else if(valorLDR >= 500 && valorLDR < 699)
+      {
+        nivel ="Baja";
+      }
+      else
+      {
+        nivel = "Luz apagada";
+      }
+      //tengo duda si mandar el caracter string o el valor tal cual ↓
+      Serial.print("FR"); Serial.print(i); Serial.print(" : "); Serial.print(nivel); Serial.print(" : lux "); Serial.println(": Luz");
+    }
+    return;
   }
-  else if(valorLDR >= 150 && valorLDR < 300)
-  {
-    nivel ="Alta";
+  if (checkIndexArray(numSensor, sizeLdr) == true) {
+    int valorLDR = analogRead(arrayLdr[numSensor]);
+    String nivel = "";
+    if(valorLDR >= 0 && valorLDR < 150)
+    {
+      nivel ="Muy alta";
+    }
+    else if(valorLDR >= 150 && valorLDR < 300)
+    {
+      nivel ="Alta";
+    }
+    else if(valorLDR >= 300 && valorLDR < 499)
+    {
+      nivel = "Aceptable";
+    }
+    else if(valorLDR >= 500 && valorLDR < 699)
+    {
+      nivel ="Baja";
+    }
+    else
+    {
+      nivel = "Luz apagada";
+    }
+      //tengo duda si mandar el caracter string o el valor tal cual ↓
+    Serial.print("FR"); Serial.print(numSensor); Serial.print(" : "); Serial.print(nivel); Serial.print(" : lux "); Serial.println(": Luz");
+    }
   }
-  else if(valorLDR >= 300 && valorLDR < 499)
-  {
-    nivel = "Aceptable";
+  else {
+    Serial.println("ERROR");
   }
-  else if(valorLDR >= 500 && valorLDR < 699)
-  {
-    nivel ="Baja";
-  }
-  else
-  {
-    nivel = "Luz apagada";
-  }
-  //tengo duda si mandar el caracter string o el valor tal cual ↓
-  Serial.print("FR"); Serial.print(numSensor); Serial.print(" : "); Serial.print(nivel); Serial.print(" : lux "); Serial.println(": Luz");
+  
 }
 
 void sensorFrecuencia(int numSensor) {
@@ -270,6 +314,7 @@ void cambiarEstado(int pin, bool &estado) {
   estado = !estado;
   digitalWrite(pin, estado ? HIGH : LOW);
 }
+
 void ultrasonico() {
   digitalWrite(trigPin, LOW);
   delayMicroseconds(2);
@@ -288,15 +333,3 @@ void ultrasonico() {
 }
 
 
-  if (numSensor == 999) {
-    for (int i=0; i < sizeDHT; i++){
-
-    }
-    return;
-  }
-  if (checkIndexArray(numSensor, sizeDHT) == true) {
-
-  }
-  else {
-    Serial.println("ERROR");
-  }
