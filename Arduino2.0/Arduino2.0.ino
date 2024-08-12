@@ -259,29 +259,62 @@ void sensorLDR(int numSensor) {
 }
 
 void sensorFrecuencia(int numSensor) {
-  int frecValue = analogRead(arrayFrecuenciaCard[numSensor]);
-  String nivel = "";
-  if(frecValue >= 0 && frecValue < 50)
-  {
-    nivel ="Muy bajo";
+  if (numSensor == 999) {
+    for (int i=0; i < sizeFC; i++){
+      int frecValue = analogRead(arrayFrecuenciaCard[i]);
+      String nivel = "";
+      if(frecValue >= 0 && frecValue < 50)
+      {
+        nivel ="Muy bajo";
+      }
+      else if(frecValue >= 50 && frecValue < 100)
+      {
+        nivel ="Normal";
+      }
+      else if(frecValue >= 100 && frecValue < 150)
+      {
+        nivel = "Poco alto";
+      }
+      else if(frecValue >= 150 && frecValue < 200)
+      {
+        nivel ="Alto";
+      }
+      else
+      {
+        nivel = "Muy alto";
+      }
+      Serial.print("SRC"); Serial.print(i); Serial.print(" : "); Serial.print(nivel); Serial.print(" : bpm "); Serial.println(": Ritmo Card");
+    }
+    return;
   }
-  else if(frecValue >= 50 && frecValue < 100)
-  {
-    nivel ="Normal";
+  if (checkIndexArray(numSensor, sizeFC) == true) {
+      int frecValue = analogRead(arrayFrecuenciaCard[numSensor]);
+      String nivel = "";
+      if(frecValue >= 0 && frecValue < 50)
+      {
+        nivel ="Muy bajo";
+      }
+      else if(frecValue >= 50 && frecValue < 100)
+      {
+        nivel ="Normal";
+      }
+      else if(frecValue >= 100 && frecValue < 150)
+      {
+        nivel = "Poco alto";
+      }
+      else if(frecValue >= 150 && frecValue < 200)
+      {
+        nivel ="Alto";
+      }
+      else
+      {
+        nivel = "Muy alto";
+      }
+      Serial.print("SRC"); Serial.print(numSensor); Serial.print(" : "); Serial.print(nivel); Serial.print(" : bpm "); Serial.println(": Ritmo Card");
   }
-  else if(frecValue >= 100 && frecValue < 150)
-  {
-    nivel = "Poco alto";
+  else {
+  Serial.println("ERROR");
   }
-  else if(frecValue >= 150 && frecValue < 200)
-  {
-    nivel ="Alto";
-  }
-  else
-  {
-    nivel = "Muy alto";
-  }
-  Serial.print("SRC"); Serial.print(numSensor); Serial.print(" : "); Serial.print(nivel); Serial.print(" : bpm "); Serial.println(": Ritmo Card");
 }
 
 void leerSensor(int pin, int umbral, const String& etiqueta, const String& unidad, int numSensor) {
@@ -291,11 +324,33 @@ void leerSensor(int pin, int umbral, const String& etiqueta, const String& unida
 }
 
 void sensorSonido(int numSensor) {
-  leerSensor(arraySD[numSensor], 105, "SD", "dB : Sonido", numSensor);
+  if (numSensor == 999) {
+    for (int i=0; i < sizeDHT; i++){
+      leerSensor(arraySD[i], 105, "SD", "dB : Sonido", i);
+    }
+  return;
+  }
+  if (checkIndexArray(numSensor, sizeSD) == true) {
+    leerSensor(arraySD[numSensor], 105, "SD", "dB : Sonido", numSensor);
+  }
+  else {
+  Serial.println("ERROR");
+  }
 }
 
 void sensorMQ2(int numSensor) {
-  leerSensor(arrayMQ[numSensor], 210, "MQ", "ppm : Gas", numSensor);
+  if (numSensor == 999) {
+    for (int i=0; i < sizeMQ; i++){
+    leerSensor(arrayMQ[i], 210, "MQ", "ppm : Gas", i);
+    }
+  return;
+  }
+  if (checkIndexArray(numSensor, sizeMQ) == true) {
+    leerSensor(arrayMQ[numSensor], 210, "MQ", "ppm : Gas", numSensor);
+  }
+  else {
+  Serial.println("ERROR");
+  }
 }
 
 void cambiarMotor(int numSensor) {
@@ -330,4 +385,17 @@ void ultrasonico() {
   }
 }
 
+/*
+  if (numSensor == 999) {
+    for (int i=0; i < sizeDHT; i++){
 
+    }
+  return;
+  }
+  if (checkIndexArray(numSensor, sizeDHT) == true) {
+
+  }
+  else {
+  Serial.println("ERROR");
+  }
+*/
