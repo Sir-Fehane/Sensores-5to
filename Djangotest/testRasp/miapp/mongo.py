@@ -4,6 +4,7 @@ import time
 import datetime
 import serial
 from pymongo import MongoClient
+import requests
 
 class arduinoToMongoClass:
     def __init__(self):
@@ -11,12 +12,12 @@ class arduinoToMongoClass:
         self.db = self.mongo_client['cunas']
         self.devices_collection = self.db['devices']
         self.data_sent = False
-        self.ser = serial.Serial('COM10', 9600, timeout=1)
+        self.ser = serial.Serial('COM9', 9600, timeout=1)
         
-        self.collecion = self.db['Data']
+        self.collecion = self.db['Data2']
         
         #ID del dispositivo
-        self.device_id = "Cuna005"
+        self.device_id = "test"
         #cambiarlo cada vez que se reinicie el ngrok
         self.ngrokURL ="127.0.0.1:8000"
         
@@ -63,7 +64,7 @@ class arduinoToMongoClass:
                     )
                     
                     for sensor_name, sensor_data in sensors.items():
-                        collection = self.db['Data']
+                        collection = self.db['Data2']
                         
                         # Insertar los datos de los sensores en su colección
                         if "infoSensor" in sensor_data:
@@ -109,7 +110,7 @@ class arduinoToMongoClass:
                         )
                         
                         for sensor_name, sensor_data in sensors.items():
-                            collection = self.db['Data']
+                            collection = self.db['Data2']
                             
                             # Insertar los datos de los sensores en su colección
                             if "infoSensor" in sensor_data:
@@ -160,7 +161,7 @@ class arduinoToMongoClass:
                         "data": [
                             {
                                 "data": sensor_value,
-                                "datetime": datetime.datetime.now().strftime("%d/%m/%y %H:%M:%S")
+                                "datetime": datetime.datetime.now()
                             }
                         ]
                     }
@@ -191,9 +192,9 @@ class arduinoToMongoClass:
             # Insertar cada sensor en su propia colección
             for sensor_name, sensor_data in obj["Dispositivos"][self.device_id].items():
                 collection_name = sensor_name
-                collection = self.db['Data']
+                collection = self.db['Data2']
                 collection.insert_one(sensor_data)
-            
+            requests.post('http://18.223.141.24:3333/sendevento')
             print('Datos guardados en MongoDB')
         except Exception as e:
             print(f'Error al guardar en MongoDB: {e}')
@@ -227,7 +228,7 @@ class arduinoToMongoClass:
                             "data": [
                                 {
                                     "data": sensor_value,
-                                    "datetime": datetime.datetime.now().strftime("%d/%m/%y %H:%M:%S")
+                                    "datetime": datetime.datetime.now()
                                 }
                             ]
                         }
@@ -259,10 +260,10 @@ class arduinoToMongoClass:
                 
                 # Insertar en la colección de sensores
                 collection_name = sensor_name
-                collection = self.db['Data']
+                collection = self.db['Data2']
                 sensor_document = obj["Dispositivos"][self.device_id][sensor_name]
                 collection.insert_one(sensor_document)
-                
+                requests.post('http://18.223.141.24:3333/sendevento')
                 print('Datos guardados en MongoDB')
             except Exception as e:
                 print(e)
@@ -277,6 +278,9 @@ class arduinoToMongoClass:
                 
 if __name__ == '__main__':
     a = arduinoToMongoClass()
-    a.runSesion()
+    ser = a.ser
+    number=8
+    ser.write(str(number).encode())
+    a.runSingle()
                 
              
