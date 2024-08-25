@@ -1,0 +1,1 @@
+Parte del Proyecto Integrador 2, en este, se desarrollo una cuna inteligente con diversos sensores y una raspberry la cual conectaba el arduino y mandaba la informacion por MongoDB usando una api sencilla en Django.
